@@ -20,17 +20,43 @@ The `fast_jl/` directory contains all files needed for CUDA compilation:
 
 ## 🚀 Quick Start
 
-### 1. Compile Fast JL
+### Automatic Compilation (New!)
+Fast JL now compiles automatically during package installation:
+
+```bash
+# Standard installation - automatically compiles for current CUDA version
+pip install dattri
+
+# Development installation - also triggers compilation
+pip install -e .
+python setup.py develop --user
+```
+
+The automatic compilation:
+- Detects your CUDA version and Python installation
+- Checks PyTorch CUDA compatibility  
+- Finds your GPU compute capability
+- Compiles for the appropriate architecture
+- Tests the installation
+
+### Manual Compilation
+If automatic compilation fails or you want to recompile:
+
+#### Option 1: Console Command
+```bash
+dattri_compile_cuda
+```
+
+#### Option 2: Setup Script  
+```bash
+python setup.py  # Runs compilation check and build
+```
+
+#### Option 3: Direct Script
 ```bash
 cd fast_jl/
 ./compile_fast_jl.sh
 ```
-
-The script automatically:
-- Detects your CUDA version and Python installation
-- Finds your GPU compute capability  
-- Compiles for the appropriate architecture
-- Tests the installation
 
 ### 2. Use with Dattri
 ```python

@@ -37,6 +37,7 @@ find = {}
 [project.entry-points.console_scripts]
 dattri_retrain="dattri.script.dattri_retrain:main"
 dattri_retrain_nanogpt="dattri.script.dattri_retrain_nanogpt:main"
+dattri_compile_cuda="setup:main"
 
 [tool.setuptools.package-data]
 dattri = ["py.typed"]
