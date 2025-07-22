@@ -21,7 +21,7 @@ def _vectorize(
     g: Dict[str, Tensor],
     batch_dim: Optional[bool] = True,
     arr: Optional[Tensor] = None,
-    device: Optional[str] = "cuda",
+    device: Optional[str] = None,
 ) -> Tensor:
     """Vectorize gradients into a flattened tensor.
 
@@ -39,7 +39,7 @@ def _vectorize(
             scalar parameters in all the tensors in `g`. If not provided, a new
             tensor will be allocated. Defaults to None.
         device (str, optional): The device to store the tensor on. Either "cuda"
-            or "cpu". Defaults to "cuda".
+            or "cpu". If None, uses the device of the first tensor in g.
 
     Returns:
         Tensor: A flattened tensor of gradients. If batch_dim is True, shape is
@@ -54,6 +54,9 @@ def _vectorize(
         if batch_dim:
             g_elt = g[next(iter(g.keys()))]
             batch_size = g_elt.shape[0]
+            # Auto-detect device if not provided
+            if device is None:
+                device = g_elt.device
             num_params = 0
             for param in g.values():
                 if param.shape[0] != batch_size:
@@ -66,6 +69,10 @@ def _vectorize(
                 device=device,
             )
         else:
+            # Auto-detect device if not provided
+            if device is None:
+                first_param = next(iter(g.values()))
+                device = first_param.device
             num_params = 0
             for param in g.values():
                 num_params += int(param.numel())

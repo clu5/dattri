@@ -532,16 +532,19 @@ def main():
 
     checkpoints = [f"{args.output_dir}/{i}"
                     for i in range(50)]
+    # Auto-detect device
+    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    
     result_list = []
     for checkpoint in checkpoints:
-        model = AutoModelForCausalLM.from_pretrained(checkpoint).cuda()
+        model = AutoModelForCausalLM.from_pretrained(checkpoint).to(device)
         params = {k: p for k, p in model.named_parameters() if p.requires_grad}
 
         @flatten_func(model)
         def f(params, batch):
-            outputs = torch.func.functional_call(model, params, batch["input_ids"].cuda(),
-                                                kwargs={"attention_mask": batch["attention_mask"].cuda(),
-                                                        "labels": batch["labels"].cuda()})
+            outputs = torch.func.functional_call(model, params, batch["input_ids"].to(device),
+                                                kwargs={"attention_mask": batch["attention_mask"].to(device),
+                                                        "labels": batch["labels"].to(device)})
             logp = -outputs.loss
             return logp - torch.log(1 - torch.exp(logp))
 

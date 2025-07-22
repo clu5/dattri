@@ -88,7 +88,11 @@ class TRAKAttributor(BaseAttributor):
         if projector_kwargs is not None:
             self.projector_kwargs.update(projector_kwargs)
         self.layer_name = layer_name
-        self.device = device
+        # Convert device to torch.device for consistency  
+        if isinstance(device, str):
+            self.device = torch.device(device)
+        else:
+            self.device = device
         self.grad_target_func = self.task.get_grad_target_func(in_dims=(None, 0))
         self.grad_loss_func = self.task.get_grad_loss_func(in_dims=(None, 0))
         self.correct_probability_func = vmap(

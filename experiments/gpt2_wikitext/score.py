@@ -430,6 +430,9 @@ def main():
             "You can do it from another script, save it, and load it from here, using --tokenizer_name."
         )
 
+    # Auto-detect device
+    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    
     if args.model_name_or_path:
         model = AutoModelForCausalLM.from_pretrained(
             args.model_name_or_path,
@@ -438,11 +441,11 @@ def main():
             low_cpu_mem_usage=args.low_cpu_mem_usage,
             trust_remote_code=args.trust_remote_code,
         )
-        model = model.cuda()
+        model = model.to(device)
     else:
         logger.info("Training new model from scratch")
         model = AutoModelForCausalLM.from_config(config, trust_remote_code=args.trust_remote_code)
-        model = model.cuda()
+        model = model.to(device)
 
     # We resize the embeddings only when necessary to avoid index errors. If you are creating a model from scratch
     # on a small vocab and want a smaller embedding size, remove this test.
@@ -561,9 +564,9 @@ def main():
         """
         input_ids, attention_mask, labels = batch
 
-        input_ids = input_ids.cuda()
-        attention_mask = attention_mask.cuda()
-        labels = labels.cuda()
+        input_ids = input_ids.to(device)
+        attention_mask = attention_mask.to(device)
+        labels = labels.to(device)
 
         outputs = torch.func.functional_call(
             model,
@@ -584,9 +587,9 @@ def main():
         """
         input_ids, attention_mask, labels = batch
 
-        input_ids = input_ids.cuda()
-        attention_mask = attention_mask.cuda()
-        labels = labels.cuda()
+        input_ids = input_ids.to(device)
+        attention_mask = attention_mask.to(device)
+        labels = labels.to(device)
 
         outputs = torch.func.functional_call(
             model,
@@ -606,9 +609,9 @@ def main():
         (TracIn sums over checkpoint updates of gradient dot-products).
         """
         input_ids, attention_mask, labels = batch
-        input_ids = input_ids.cuda()
-        attention_mask = attention_mask.cuda()
-        labels = labels.cuda()
+        input_ids = input_ids.to(device)
+        attention_mask = attention_mask.to(device)
+        labels = labels.to(device)
         outputs = torch.func.functional_call(
             model, params, input_ids,
             kwargs={"attention_mask": attention_mask,
@@ -633,7 +636,7 @@ def main():
         )
 
     def checkpoints_load_func(model, checkpoint_path):
-        new_model = AutoModelForCausalLM.from_pretrained(checkpoint_path).cuda()
+        new_model = AutoModelForCausalLM.from_pretrained(checkpoint_path).to(device)
         new_model.eval()
         return new_model
 
@@ -656,14 +659,14 @@ def main():
 
     if method.startswith("TRAK"):
         projector_kwargs = {
-            "device": "cuda",
+            "device": str(device),
             "proj_dim": 2048,
             "use_half_precision": False,
         }
         attributor = TRAKAttributor(
             task=task,
             correct_probability_func=m,
-            device="cuda",
+            device=str(device),
             projector_kwargs=projector_kwargs,
         )
 
@@ -675,7 +678,7 @@ def main():
         weight_list = torch.ones(num_checkpoints) * 1e-3
 
         projector_kwargs = {
-            "device": "cuda",
+            "device": str(device),
             "proj_dim": 2048,
             "use_half_precision": False,
         }
@@ -684,7 +687,7 @@ def main():
             task=task,
             weight_list=weight_list,
             normalized_grad=normalized_grad,
-            device="cuda",
+            device=str(device),
             projector_kwargs=projector_kwargs,
         )
 

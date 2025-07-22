@@ -66,7 +66,11 @@ class TracInAttributor(BaseAttributor):
             self.projector_kwargs.update(projector_kwargs)
         self.normalized_grad = normalized_grad
         self.layer_name = layer_name
-        self.device = device
+        # Convert device to torch.device for consistency
+        if isinstance(device, str):
+            self.device = torch.device(device)
+        else:
+            self.device = device
         self.full_train_dataloader = None
         # to get per-sample gradients for a mini-batch of train/test samples
         self.grad_target_func = self.task.get_grad_target_func(in_dims=(None, 0))
@@ -109,8 +113,10 @@ class TracInAttributor(BaseAttributor):
 
         # placeholder for the TDA result
         # should work for torch dataset without sampler
+        # Keep on CPU since results are moved to CPU anyway
         tda_output = torch.zeros(
             size=(len(train_dataloader.sampler), len(test_dataloader.sampler)),
+            device="cpu",
         )
 
         # iterate over each checkpoint (each ensemble)
@@ -261,8 +267,10 @@ class TracInAttributor(BaseAttributor):
 
         # placeholder for the TDA result
         # should work for torch dataset without sampler
+        # Keep on CPU since results are moved to CPU anyway
         tda_output = torch.zeros(
             size=(len(train_dataloader.sampler),),
+            device="cpu",
         )
 
         # iterate over each checkpoint (each ensemble)

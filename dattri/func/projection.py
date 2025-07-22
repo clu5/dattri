@@ -226,7 +226,7 @@ class BasicProjector(AbstractProjector):
         """
         if isinstance(features, dict):
             features = vectorize(features, device=self.device)
-        elif features.device.type != self.device:
+        elif features.device != torch.device(self.device):
             features = features.to(self.device)
         features = features.to(dtype=self.dtype)
         sketch = torch.zeros(
@@ -296,6 +296,8 @@ class CudaProjector(AbstractProjector):
 
         if isinstance(device, str):
             device = torch.device(device)
+        
+        self.device = device
 
         if device.type != "cuda":
             err = "CudaProjector only works on a CUDA device; \
@@ -345,7 +347,7 @@ class CudaProjector(AbstractProjector):
 
         if isinstance(features, dict):
             features = vectorize(features, device=self.device)
-        elif features.device.type != self.device:
+        elif features.device != torch.device(self.device):
             features = features.to(self.device)
         batch_size = features.shape[0]
 
@@ -358,7 +360,9 @@ class CudaProjector(AbstractProjector):
 
         effective_batch_size = min(self.max_batch_size, effective_batch_size)
 
-        function_name = f"project_{self.proj_type}_{effective_batch_size}"
+        # Convert ProjectionType enum to string value if needed
+        proj_type_str = self.proj_type.value if hasattr(self.proj_type, 'value') else str(self.proj_type)
+        function_name = f"project_{proj_type_str}_{effective_batch_size}"
 
         fn = getattr(fast_jl, function_name)
 
@@ -832,7 +836,7 @@ def make_random_projector(
     dtype = torch.float16 if use_half_precision else torch.float32
     # the total feature dim
     feature_dim = sum(param_shape_list)
-    if device == "cpu":
+    if str(device) == "cpu" or (hasattr(device, 'type') and device.type == "cpu"):
         projector = BasicProjector
         # Sampling from bernoulli distribution is not supported for
         # dtype float16 on CPU; playing it safe here by defaulting to
