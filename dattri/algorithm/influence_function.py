@@ -21,8 +21,8 @@ from torch.func import grad, vmap
 from tqdm import tqdm
 
 from dattri.algorithm.utils import _check_shuffle
-from dattri.func.hessian import ihvp_arnoldi, ihvp_cg, ihvp_explicit, ihvp_lissa
-from dattri.func.utils import flatten_params
+from dattri.metric.func.hessian import ihvp_arnoldi, ihvp_cg, ihvp_explicit, ihvp_lissa
+from dattri.metric.func.utils import flatten_params
 
 from .base import BaseAttributor, BaseInnerProductAttributor
 
@@ -269,7 +269,7 @@ class IFAttributorExplicit(BaseInnerProductAttributor):
             torch.Tensor: Transformed test representations. Typically a 2-d
                 tensor with shape (batch_size, transformed_dimension).
         """
-        from dattri.func.hessian import ihvp_explicit
+        from dattri.metric.func.hessian import ihvp_explicit
 
         vector_product = 0
         model_params, _ = self.task.get_param(ckpt_idx, layer_name=self.layer_name)
@@ -395,7 +395,7 @@ class IFAttributorCG(BaseInnerProductAttributor):
             torch.Tensor: Transformed test representations. Typically a 2-d
                 tensor with shape (batch_size, transformed_dimension).
         """
-        from dattri.func.hessian import ihvp_cg
+        from dattri.metric.func.hessian import ihvp_cg
 
         vector_product = 0
         model_params, _ = self.task.get_param(ckpt_idx, layer_name=self.layer_name)
@@ -549,7 +549,7 @@ class IFAttributorArnoldi(BaseInnerProductAttributor):
                 self.device,
             )
 
-        from dattri.func.projection import arnoldi_project
+        from dattri.metric.func.projection import arnoldi_project
 
         for i in range(len(self.task.get_checkpoints())):
             func = partial(
@@ -693,7 +693,7 @@ class IFAttributorLiSSA(BaseInnerProductAttributor):
             torch.Tensor: Transformed test representations. Typically a 2-d
                 tensor with shape (batch_size, transformed_dimension).
         """
-        from dattri.func.hessian import ihvp_lissa
+        from dattri.metric.func.hessian import ihvp_lissa
 
         vector_product = 0
         model_params, _ = self.task.get_param(ckpt_idx, layer_name=self.layer_name)
@@ -1050,7 +1050,7 @@ class IFAttributorEKFAC(BaseInnerProductAttributor):
                 batches that will be used for estimating the the covariance matrices
                 and lambdas. Default to length of `full_train_dataloader`.
         """
-        from dattri.func.fisher import (
+        from dattri.metric.func.fisher import (
             estimate_covariance,
             estimate_eigenvector,
             estimate_lambda,

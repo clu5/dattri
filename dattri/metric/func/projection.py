@@ -29,7 +29,7 @@ import numpy as np
 import torch
 from torch import Tensor
 
-from dattri.func.hessian import hvp_at_x
+from dattri.metric.func.hessian import hvp_at_x
 
 from .utils import _vectorize as vectorize
 from .utils import get_parameter_chunk_sizes

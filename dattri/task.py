@@ -15,7 +15,7 @@ import torch
 from torch import nn
 from torch.func import grad, vmap
 
-from dattri.func.utils import flatten_func, flatten_params, partial_param
+from dattri.metric.func.utils import flatten_func, flatten_params, partial_param
 
 
 def _default_checkpoint_load_func(
